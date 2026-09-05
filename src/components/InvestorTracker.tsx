@@ -47,39 +47,41 @@ export const InvestorTracker: React.FC = () => {
   };
 
   return (
-    <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', border: '1px solid #eaeaea', marginTop: '20px' }}>
-      <h3 style={{ marginBottom: '8px', fontSize: '18px', fontWeight: 'bold' }}>Trade history analytics</h3>
-      <p style={{ fontSize: '13px', color: '#666', marginBottom: '16px' }}>
-        Paste your exported MT5 deal history or rows below to instantly review your win rate, profit factor, and net performance metrics.
+    <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+      <div style={{ fontSize: '12px', fontWeight: '700', color: '#334155', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.05em' }}>
+        📈 Trade History Analytics
+      </div>
+      <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '12px', lineHeight: '1.4' }}>
+        Paste your exported MT5 deal history report below to review live win-rate and P&L metrics.
       </p>
 
       <textarea
-        rows={6}
-        placeholder="Paste exported MT5 report contents or table rows here..."
+        rows={4}
+        placeholder="Paste MT5 statement rows here..."
         onChange={(e) => analyzeHistory(e.target.value)}
-        style={{ width: '100%', padding: '12px', fontFamily: 'monospace', fontSize: '12px', borderRadius: '6px', border: '1px solid #ccc', marginBottom: '16px' }}
+        style={{ width: '100%', padding: '10px', fontFamily: 'monospace', fontSize: '11px', borderRadius: '6px', border: '1px solid #cbd5e1', marginBottom: '14px', boxSizing: 'border-box', background: '#ffffff' }}
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
-        <div style={{ background: '#f9fafb', padding: '14px', borderRadius: '8px', textAlign: 'center', border: '1px solid #f0f0f0' }}>
-          <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase' }}>Total Trades</div>
-          <div style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '4px' }}>{stats.totalTrades}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+        <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Total Trades</div>
+          <div style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{stats.totalTrades}</div>
         </div>
-        <div style={{ background: '#f9fafb', padding: '14px', borderRadius: '8px', textAlign: 'center', border: '1px solid #f0f0f0' }}>
-          <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase' }}>Win Rate</div>
-          <div style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '4px', color: stats.winRate >= 50 ? '#10b981' : '#ef4444' }}>
+        <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Win Rate</div>
+          <div style={{ fontSize: '16px', fontWeight: '800', color: stats.winRate >= 50 ? '#10b981' : '#ef4444', marginTop: '2px' }}>
             {stats.winRate}%
           </div>
         </div>
-        <div style={{ background: '#f9fafb', padding: '14px', borderRadius: '8px', textAlign: 'center', border: '1px solid #f0f0f0' }}>
-          <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase' }}>Net P&L</div>
-          <div style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '4px', color: stats.netProfit >= 0 ? '#10b981' : '#ef4444' }}>
+        <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Net P&L</div>
+          <div style={{ fontSize: '16px', fontWeight: '800', color: stats.netProfit >= 0 ? '#10b981' : '#ef4444', marginTop: '2px' }}>
             ${stats.netProfit}
           </div>
         </div>
-        <div style={{ background: '#f9fafb', padding: '14px', borderRadius: '8px', textAlign: 'center', border: '1px solid #f0f0f0' }}>
-          <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase' }}>Profit Factor</div>
-          <div style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '4px' }}>{stats.profitFactor}</div>
+        <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Profit Factor</div>
+          <div style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{stats.profitFactor}</div>
         </div>
       </div>
     </div>
