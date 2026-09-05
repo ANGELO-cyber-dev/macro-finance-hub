@@ -1,51 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { allMarketsData } from './data/allMarketsDatabase';
-import { fetchFredMacroData, fetchFmpStockQuote, createDerivWebSocket } from './services/apiConnector';
+import { fetchFredSeries, fetchFmpQuote } from './services/realApiConnector';
 
 export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<'FOREX' | 'COMMODITIES' | 'NYSE' | 'NGX'>('FOREX');
-  const [fredCpi, setFredCpi] = useState<string>('Loading FRED...');
-  const [fmpData, setFmpData] = useState<any>(null);
-  const [derivTick, setDerivTick] = useState<string>('Connecting Deriv WS...');
+  const [fredCpi, setFredCpi] = useState<{ value: string; date: string }>({ value: 'Loading...', date: '' });
+  const [fredUnrate, setFredUnrate] = useState<{ value: string; date: string }>({ value: 'Loading...', date: '' });
+  const [fmpPrices, setFmpPrices] = useState<Record<string, { price: number; change: number }>>({});
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
-    // Fetch FRED Macro Data
-    fetchFredMacroData('CPIAUCSL').then(obs => {
-      if (obs) setFredCpi(`${obs.value} (${obs.date})`);
-      else setFredCpi('API Key Missing / Simulated Mode');
-    });
+    // Fetch fundamental data from FRED
+    fetchFredSeries('CPIAUCSL').then(setFredCpi);
+    fetchFredSeries('UNRATE').then(setFredUnrate);
 
-    // Fetch FMP Sample Stock Quote (e.g. JPMorgan JPM)
-    fetchFmpStockQuote('JPM').then(quote => {
-      if (quote) setFmpData(quote);
-    });
-
-    // Connect Deriv WebSocket for real-time forex streaming
-    const ws = createDerivWebSocket((data) => {
-      if (data.tick) {
-        setDerivTick(`${data.tick.symbol}: ${data.tick.quote}`);
+    // Fetch live stock quotes from FMP for NYSE stocks
+    const nyseSymbols = allMarketsData.filter(i => i.category === 'NYSE').map(i => i.symbol);
+    nyseSymbols.forEach(async (sym) => {
+      const quote = await fetchFmpQuote(sym);
+      if (quote) {
+        setFmpPrices(prev => ({ ...prev, [sym]: { price: quote.price, change: quote.changesPercentage } }));
       }
     });
-
-    return () => {
-      ws.close();
-    };
   }, []);
+
+  const filteredAssets = allMarketsData.filter(item => {
+    const matchesCategory = item.category === selectedCategory;
+    const matchesSearch = searchQuery === '' || 
+      item.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif', padding: '20px' }}>
-      {/* Header with API Status */}
+      {/* Top Macro Banner using FRED */}
       <header style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
         <div>
-          <h1 style={{ fontSize: '15px', fontWeight: 900, margin: 0 }}>LIVE MULTI-API TERMINAL (DERIV, FRED, FMP)</h1>
-          <div style={{ fontSize: '10px', color: '#10b981', fontWeight: 800, marginTop: '2px' }}>● FRED CPI: {fredCpi} | Deriv Stream: {derivTick}</div>
+          <h1 style={{ fontSize: '15px', fontWeight: 900, margin: 0 }}>INSTITUTIONAL MACRO & LIVE STOCK TERMINAL</h1>
+          <div style={{ fontSize: '10px', color: '#10b981', fontWeight: 800, marginTop: '2px' }}>
+            ● FRED CPI: {fredCpi.value} ({fredCpi.date}) | UNRATE: {fredUnrate.value} ({fredUnrate.date})
+          </div>
         </div>
-        <div style={{ fontSize: '11px', background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '6px 12px', borderRadius: '8px', fontWeight: 800 }}>
-          {fmpData ? `FMP Connected: JPM $${fmpData.price}` : 'Configuring API Keys...'}
+        <div>
+          <input 
+            type="text" 
+            placeholder="Search assets..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '11px', outline: 'none', fontWeight: 600 }}
+          />
         </div>
       </header>
 
-      {/* Category Selection Tabs */}
+      {/* Category Tabs */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
         {(['FOREX', 'COMMODITIES', 'NYSE', 'NGX'] as const).map(cat => (
           <button
@@ -62,27 +70,34 @@ export default function App() {
               cursor: 'pointer'
             }}
           >
-            {cat}
+            {cat === 'FOREX' ? 'Forex Pairs' : cat === 'COMMODITIES' ? 'Commodities' : cat === 'NYSE' ? 'NYSE Equities (FMP Live)' : 'Nigerian Stock Exchange (NGX)'}
           </button>
         ))}
       </div>
 
-      {/* Asset Display */}
+      {/* Market Grid Matrix */}
       <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
         <h3 style={{ fontSize: '14px', fontWeight: 900, margin: '0 0 15px 0' }}>{selectedCategory} Market Feed</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
-          {allMarketsData.filter(i => i.category === selectedCategory).map(item => (
-            <div key={item.symbol} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 900 }}>{item.symbol}</div>
-                <div style={{ fontSize: '10px', color: '#64748b' }}>{item.name}</div>
+          {filteredAssets.map(item => {
+            const fmp = fmpPrices[item.symbol];
+            const displayPrice = fmp ? `$${fmp.price.toFixed(2)}` : item.price;
+            const displayChange = fmp ? `${fmp.change >= 0 ? '+' : ''}${fmp.change.toFixed(2)}%` : item.change;
+            const isPositive = displayChange.startsWith('+');
+
+            return (
+              <div key={item.symbol} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 900 }}>{item.symbol}</div>
+                  <div style={{ fontSize: '10px', color: '#64748b' }}>{item.name}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 900 }}>{displayPrice}</div>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: isPositive ? '#10b981' : '#ef4444' }}>{displayChange}</div>
+                </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '14px', fontWeight: 900 }}>{item.price}</div>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#10b981' }}>{item.change}</div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
