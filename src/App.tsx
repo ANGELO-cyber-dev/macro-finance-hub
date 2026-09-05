@@ -610,21 +610,9 @@ export default function App() {
             />
           </div>
 
-          <button
-            onClick={() => setShowCalc(!showCalc)}
-            style={{
-              background: showCalc ? '#09090B' : '#F4F4F5',
-              color: showCalc ? '#FAFAFA' : '#18181B',
-              border: 'none',
-              padding: '6px 12px',
-              borderRadius: '16px',
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            {showCalc ? 'Close' : '🧮 Risk'}
-          </button>
+          <button onClick={() => setIsSideMenuOpen(true)} className="flex items-center gap-1.5 px-3 py-1 bg-zinc-900 text-white rounded-full text-xs font-medium cursor-pointer shadow-sm hover:bg-zinc-800">
+    <span>📊</span> Menu / Analytics
+  </button>
         </div>
       </header>
 
