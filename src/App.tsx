@@ -18,7 +18,7 @@ export default function App() {
         </div>
         <button 
           onClick={() => setIsSideMenuOpen(true)} 
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', px: '12px', py: '6px', background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
         >
           <span>📈</span> Menu / Analytics
         </button>
