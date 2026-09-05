@@ -1,3 +1,4 @@
+import { SideMenuDrawer } from "./components/SideMenuDrawer";
 import { NyseScreener } from "./components/NyseScreener";
 import { NgxMarketFeed } from "./components/NgxMarketFeed";
 import React, { useState, useEffect, useRef } from 'react';
@@ -377,6 +378,7 @@ const MASTER_INSTRUMENTS: MacroAsset[] = [
 const TWELVE_KEY = 'b1e082f789294e8386b69610368832fb';
 
 export default function App() {
+  const [isSideMenuOpen, setIsSideMenuOpen] = React.useState(false);
   const [selectedAsset, setSelectedAsset] = useState<MacroAsset>(MASTER_INSTRUMENTS[0]);
   const [livePricesMap, setLivePricesMap] = useState<Record<string, number>>({});
   const [expandedSym, setExpandedSym] = useState<string | null>(MASTER_INSTRUMENTS[0].symbol);
@@ -906,6 +908,7 @@ export default function App() {
         </section>
 
       </main>
+      <SideMenuDrawer isOpen={isSideMenuOpen} onClose={() => setIsSideMenuOpen(false)} />
     </div>
   );
 }
