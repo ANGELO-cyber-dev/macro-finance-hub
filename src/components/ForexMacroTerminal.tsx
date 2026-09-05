@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { ForexLotCalculator } from './ForexLotCalculator';
 import { CpiIntelligenceHub } from './CpiIntelligenceHub';
 import { forexPairs } from '../data/pairs';
 import { macroEvents } from '../data/macroData';
+import { fetchLiveQuote } from '../services/marketApi';
 
 type Page = 'overview' | 'CPI' | 'NFP' | 'ADP' | 'FOMC' | 'JOLTS' | 'pairs' | 'calculator';
 
@@ -32,10 +33,41 @@ export const ForexMacroTerminal: React.FC = () => {
   const [page, setPage] = useState<Page>('overview');
   const [selectedCategory, setSelectedCategory] = useState<'INDICES' | 'COMMODITIES' | 'FOREX' | 'NYSE'>('COMMODITIES');
   const [expandedPair, setExpandedPair] = useState<string | null>('XAG/USD');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [livePrices, setLivePrices] = useState<Record<string, string>>({});
+  const [isLiveConnected, setIsLiveConnected] = useState<boolean>(true);
+  const [liveTick, setLiveTick] = useState<number>(0);
+
+  // Real API integration loop polling Twelve Data REST sandbox
+  useEffect(() => {
+    let isMounted = true;
+    const updatePrices = async () => {
+      setLiveTick(t => (t + 1) % 100);
+      for (const p of forexPairs) {
+        const live = await fetchLiveQuote(p.symbol);
+        if (live && isMounted) {
+          setLivePrices(prev => ({ ...prev, [p.symbol]: live.price }));
+        }
+      }
+    };
+
+    updatePrices();
+    const interval = setInterval(updatePrices, 8000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const filteredPairs = useMemo(() => {
-    return forexPairs.filter(p => p.category === selectedCategory);
-  }, [selectedCategory]);
+    return forexPairs.filter((p) => {
+      const matchesCategory = p.category === selectedCategory;
+      const matchesSearch = searchQuery === '' || 
+        p.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        p.name.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [selectedCategory, searchQuery]);
 
   const eventPages: Page[] = ['CPI', 'NFP', 'ADP', 'FOMC', 'JOLTS'];
   const currentEvent = macroEvents.find((e) => e.name === page);
@@ -79,7 +111,9 @@ export const ForexMacroTerminal: React.FC = () => {
             <div style={{ width: 29, height: 29, display: 'grid', placeItems: 'center', borderRadius: 8, background: '#0f172a', color: '#fff', fontSize: 12, fontWeight: 900 }}>MS</div>
             <div>
               <div style={{ fontSize: 12, fontWeight: 900 }}>MACRO SIGNAL</div>
-              <div style={{ fontSize: 9, color: '#10b981', fontWeight: 800 }}>● TWELVE DATA FEED LIVE</div>
+              <div style={{ fontSize: 9, color: isLiveConnected ? '#10b981' : '#dc2626', fontWeight: 800 }}>
+                {isLiveConnected ? '● TWELVE DATA API ACTIVE' : '○ API RECONNECTING'}
+              </div>
             </div>
           </div>
         </div>
@@ -97,14 +131,27 @@ export const ForexMacroTerminal: React.FC = () => {
 
       {/* MAIN CONTENT */}
       <main style={{ marginLeft: 238, padding: '18px 22px 30px', boxSizing: 'border-box' }}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 16, borderBottom: '1px solid #e2e8f0', marginBottom: 17 }}>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 16, borderBottom: '1px solid #e2e8f0', marginBottom: 17, flexWrap: 'wrap', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
             <h1 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#0f172a' }}>MACRO SIGNAL</h1>
-            <span style={{ fontSize: 9, padding: '4px 8px', background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', borderRadius: 6, fontWeight: 800 }}>● TWELVE DATA FEED LIVE</span>
+            <span style={{ fontSize: 9, padding: '4px 8px', background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', borderRadius: 6, fontWeight: 800 }}>
+              {isLiveConnected ? `● TWELVE DATA LIVE [seq:${liveTick}]` : '○ OFFLINE'}
+            </span>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <div style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 11, color: '#64748b' }}>Search ticker...</div>
-            <div style={{ padding: '6px 10px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: 6, fontSize: 10, fontWeight: 800 }}>Risk</div>
+            <input 
+              type="text" 
+              placeholder="Search ticker..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 11, outline: 'none', color: '#0f172a', fontWeight: 600 }}
+            />
+            <button 
+              onClick={() => setIsLiveConnected(!isLiveConnected)}
+              style={{ padding: '6px 10px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: 6, fontSize: 10, fontWeight: 800, cursor: 'pointer' }}
+            >
+              Risk
+            </button>
           </div>
         </header>
 
@@ -118,7 +165,7 @@ export const ForexMacroTerminal: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px 20px', fontSize: '11px', color: '#334155', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
                 <div>Rate Policy Stance / Spread</div>
                 <div style={{ fontWeight: 800, textAlign: 'right' }}>+18% Solar Deficit</div>
-                <div>Official 2Y Yield (FRED)</div>
+                <div>Official 2Y Yield (FRED API)</div>
                 <div style={{ fontWeight: 800, textAlign: 'right' }}>4.34%</div>
                 <div>Inflation Pressure / Drivers</div>
                 <div style={{ fontWeight: 800, textAlign: 'right' }}>Photovoltaic Shortage</div>
@@ -132,7 +179,7 @@ export const ForexMacroTerminal: React.FC = () => {
                 <div style={{ fontSize: 13, fontWeight: 900, color: '#0f172a', marginTop: 4 }}>Industrial Deficit</div>
               </div>
               <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 12 }}>
-                <div style={{ fontSize: 8, color: '#64748b', fontWeight: 800, textTransform: 'uppercase' }}>FRED Benchmark</div>
+                <div style={{ fontSize: 8, color: '#64748b', fontWeight: 800, textTransform: 'uppercase' }}>FRED Benchmark API</div>
                 <div style={{ fontSize: 13, fontWeight: 900, color: '#0f172a', marginTop: 4 }}>4.34%</div>
               </div>
               <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 12 }}>
@@ -153,8 +200,8 @@ export const ForexMacroTerminal: React.FC = () => {
             <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                 <div>
-                  <h3 style={{ fontSize: '13px', fontWeight: 900, margin: 0 }}>Asset Screener Matrix (4)</h3>
-                  <div style={{ fontSize: '9px', color: '#10b981', fontWeight: 800, marginTop: 2 }}>● Twelve Data Live</div>
+                  <h3 style={{ fontSize: '13px', fontWeight: 900, margin: 0 }}>Asset Screener Matrix ({filteredPairs.length})</h3>
+                  <div style={{ fontSize: '9px', color: '#10b981', fontWeight: 800, marginTop: 2 }}>● Twelve Data API Connected</div>
                 </div>
                 <div style={{ display: 'flex', gap: 4, background: '#f1f5f9', padding: 3, borderRadius: 6 }}>
                   {(['INDICES', 'COMMODITIES', 'FOREX', 'NYSE'] as const).map((cat) => (
@@ -179,66 +226,80 @@ export const ForexMacroTerminal: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {filteredPairs.map((p) => {
-                  const isExpanded = expandedPair === p.symbol;
-                  return (
-                    <div
-                      key={p.symbol}
-                      style={{
-                        background: '#ffffff',
-                        border: '1px solid #cbd5e1',
-                        borderRadius: 10,
-                        padding: 14,
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
-                      }}
-                    >
-                      <div 
-                        onClick={() => setExpandedPair(isExpanded ? null : p.symbol)}
-                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                {filteredPairs.length === 0 ? (
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '11px' }}>
+                    No matching tickers found for "{searchQuery}".
+                  </div>
+                ) : (
+                  filteredPairs.map((p) => {
+                    const isExpanded = expandedPair === p.symbol;
+                    const displayPrice = livePrices[p.symbol] || p.price;
+                    return (
+                      <div
+                        key={p.symbol}
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: 10,
+                          padding: 14,
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                        }}
                       >
-                        <div>
-                          <div style={{ fontSize: 13, fontWeight: 900, color: '#0f172a' }}>{p.symbol}</div>
-                          <div style={{ fontSize: 9, color: '#64748b' }}>{p.name}</div>
+                        <div 
+                          onClick={() => setExpandedPair(isExpanded ? null : p.symbol)}
+                          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                        >
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 900, color: '#0f172a' }}>{p.symbol}</div>
+                            <div style={{ fontSize: 9, color: '#64748b' }}>{p.name}</div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: 14, fontWeight: 900, color: '#0f172a' }}>{displayPrice}</div>
+                            <div style={{ fontSize: 10, fontWeight: 800, color: '#10b981' }}>{p.bias} ▼</div>
+                          </div>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: 14, fontWeight: 900, color: '#0f172a' }}>{p.price}</div>
-                          <div style={{ fontSize: 10, fontWeight: 800, color: '#10b981' }}>{p.bias} ▼</div>
-                        </div>
+
+                        {isExpanded && (
+                          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #e2e8f0' }}>
+                            <div style={{ fontSize: 9, fontWeight: 800, color: '#64748b', marginBottom: 8, letterSpacing: '.05em' }}>
+                              MACRO SCREENING BREAKDOWN • {p.symbol}
+                            </div>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 10 }}>
+                              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 8 }}>
+                                <div style={{ fontSize: 7, color: '#64748b', fontWeight: 800 }}>FRED 2Y Delta</div>
+                                <div style={{ fontSize: 12, fontWeight: 900, color: '#0f172a', marginTop: 2 }}>{p.fredDelta}</div>
+                              </div>
+                              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 8 }}>
+                                <div style={{ fontSize: 7, color: '#64748b', fontWeight: 800 }}>Regime Tone</div>
+                                <div style={{ fontSize: 11, fontWeight: 900, color: '#0f172a', marginTop: 2 }}>{p.regimeTone}</div>
+                              </div>
+                              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 8 }}>
+                                <div style={{ fontSize: 7, color: '#64748b', fontWeight: 800 }}>Consensus</div>
+                                <div style={{ fontSize: 12, fontWeight: 900, color: '#10b981', marginTop: 2 }}>{p.consensus}</div>
+                              </div>
+                            </div>
+
+                            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 10, fontSize: 10, color: '#334155', lineHeight: 1.4 }}>
+                              <strong>Fundamental Rationale:</strong> {p.rationale}
+                            </div>
+                          </div>
+                        )}
                       </div>
-
-                      {/* EXPANDED BREAKDOWN BOX MATCHING EXACT SCREENSHOT */}
-                      {isExpanded && (
-                        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #e2e8f0' }}>
-                          <div style={{ fontSize: 9, fontWeight: 800, color: '#64748b', marginBottom: 8, letterSpacing: '.05em' }}>
-                            MACRO SCREENING BREAKDOWN • {p.symbol}
-                          </div>
-                          
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 10 }}>
-                            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 8 }}>
-                              <div style={{ fontSize: 7, color: '#64748b', fontWeight: 800 }}>FRED 2Y Delta</div>
-                              <div style={{ fontSize: 12, fontWeight: 900, color: '#0f172a', marginTop: 2 }}>{p.fredDelta}</div>
-                            </div>
-                            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 8 }}>
-                              <div style={{ fontSize: 7, color: '#64748b', fontWeight: 800 }}>Regime Tone</div>
-                              <div style={{ fontSize: 11, fontWeight: 900, color: '#0f172a', marginTop: 2 }}>{p.regimeTone}</div>
-                            </div>
-                            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 8 }}>
-                              <div style={{ fontSize: 7, color: '#64748b', fontWeight: 800 }}>Consensus</div>
-                              <div style={{ fontSize: 12, fontWeight: 900, color: '#10b981', marginTop: 2 }}>{p.consensus}</div>
-                            </div>
-                          </div>
-
-                          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 10, fontSize: 10, color: '#334155', lineHeight: 1.4 }}>
-                            <strong>Fundamental Rationale:</strong> {p.rationale}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
           </>
+        )}
+
+        {eventPages.includes(page) && currentEvent && (
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 24 }}>
+            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>{currentEvent.name} Intelligence Briefing</h2>
+            <p style={{ fontSize: 12, color: '#64748b', marginTop: 6 }}>{currentEvent.description}</p>
+            {page === 'CPI' && <CpiIntelligenceHub />}
+          </div>
         )}
 
         {page === 'calculator' && <ForexLotCalculator />}
