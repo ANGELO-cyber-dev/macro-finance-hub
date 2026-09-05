@@ -128,7 +128,7 @@ const MASTER_INSTRUMENTS: MacroAsset[] = [
 
   // --- COMMODITIES ---
   {
-    symbol: 'XAU/USD,XAG/USD',
+    symbol: 'XAU/USD',
     name: 'Spot Gold / US Dollar',
     class: 'COMMODITIES',
     price: 2516.40,
