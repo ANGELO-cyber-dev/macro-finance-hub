@@ -438,7 +438,7 @@ export default function App() {
             if (obj?.price) updated[sym] = Number(obj.price);
           });
           setLivePricesMap(prev => ({ ...prev, ...updated }));
-          setSyncStatus('Twelve Data Feed Live');
+          setSyncStatus('Broker Feed Live');
           if (updated[selectedAsset.symbol]) setActivePrice(updated[selectedAsset.symbol]);
         }
       } catch (e) {
@@ -786,7 +786,7 @@ export default function App() {
             <div>
               <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#09090B' }}>Asset Screener Matrix ({filtered.length})</div>
               <div style={{ fontSize: '0.62rem', color: '#16A34A', fontWeight: 600 }}>
-                ● {classFilter === 'INDICES' || classFilter === 'NYSE' ? 'FMP Real-Time' : 'Twelve Data Live'}
+                ● {classFilter === 'INDICES' || classFilter === 'NYSE' ? 'FMP Real-Time' : 'Live Broker Data'}
               </div>
             </div>
 
