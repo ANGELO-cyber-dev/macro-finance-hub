@@ -57,11 +57,12 @@ export const InvestorTracker: React.FC = () => {
     setTimeout(() => {
       setConnecting(false);
       setConnectedAccount({ id: loginForm.accountId, server: loginForm.server || 'Primary-MT5-Live' });
+      // Initialize with zero trades for clean accounts with no history
       setStats({
-        totalTrades: 42,
-        winRate: 68.5,
-        netProfit: 1420.50,
-        profitFactor: 2.14
+        totalTrades: 0,
+        winRate: 0,
+        netProfit: 0,
+        profitFactor: 0
       });
     }, 1000);
   };
@@ -128,7 +129,7 @@ export const InvestorTracker: React.FC = () => {
           {connectedAccount ? (
             <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px', borderRadius: '6px', textAlign: 'center', marginBottom: '12px' }}>
               <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#166534', marginBottom: '4px' }}>✓ Connected to MT5 Account #{connectedAccount.id}</div>
-              <div style={{ fontSize: '10px', color: '#15803d', marginBottom: '10px' }}>Server: {connectedAccount.server} • Telemetry Active</div>
+              <div style={{ fontSize: '10px', color: '#15803d', marginBottom: '10px' }}>Server: {connectedAccount.server} • 0 Trades Executed</div>
               <button 
                 onClick={() => setConnectedAccount(null)}
                 style={{ background: '#166534', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '10px', cursor: 'pointer' }}
@@ -172,7 +173,7 @@ export const InvestorTracker: React.FC = () => {
             </form>
           )}
 
-          {(connectedAccount || !connectedAccount) && (
+          {connectedAccount && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginTop: '12px' }}>
               <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
                 <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Total Trades</div>
@@ -180,11 +181,11 @@ export const InvestorTracker: React.FC = () => {
               </div>
               <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
                 <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Win Rate</div>
-                <div style={{ fontSize: '16px', fontWeight: '800', color: '#10b981', marginTop: '2px' }}>{stats.winRate}%</div>
+                <div style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{stats.winRate}%</div>
               </div>
               <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
                 <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Net P&L</div>
-                <div style={{ fontSize: '16px', fontWeight: '800', color: '#10b981', marginTop: '2px' }}>${stats.netProfit}</div>
+                <div style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>${stats.netProfit}</div>
               </div>
               <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
                 <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Profit Factor</div>
