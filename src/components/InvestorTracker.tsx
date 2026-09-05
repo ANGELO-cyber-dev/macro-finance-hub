@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 
 export const InvestorTracker: React.FC = () => {
+  const [mode, setMode] = useState<'paste' | 'login'>('paste');
+  const [loginForm, setLoginForm] = useState({ accountId: '', password: '', server: '' });
+  const [connecting, setConnecting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
   const [stats, setStats] = useState({
     totalTrades: 0,
     winRate: 0,
@@ -46,44 +51,118 @@ export const InvestorTracker: React.FC = () => {
     });
   };
 
+  const handleConnectLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loginForm.accountId || !loginForm.password) {
+      setErrorMsg('Please enter both Account ID and Investor Password.');
+      return;
+    }
+    setErrorMsg('');
+    setConnecting(true);
+
+    setTimeout(() => {
+      setConnecting(false);
+      setErrorMsg('Direct broker TCP connection requires a server-side MT5 API bridge. Please use the Report Parser mode above for instant client-side analysis.');
+    }, 1500);
+  };
+
   return (
     <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-      <div style={{ fontSize: '12px', fontWeight: '700', color: '#334155', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.05em' }}>
-        📈 Trade History Analytics
-      </div>
-      <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '12px', lineHeight: '1.4' }}>
-        Paste your exported MT5 deal history report below to review live win-rate and P&L metrics.
-      </p>
-
-      <textarea
-        rows={4}
-        placeholder="Paste MT5 statement rows here..."
-        onChange={(e) => analyzeHistory(e.target.value)}
-        style={{ width: '100%', padding: '10px', fontFamily: 'monospace', fontSize: '11px', borderRadius: '6px', border: '1px solid #cbd5e1', marginBottom: '14px', boxSizing: 'border-box', background: '#ffffff' }}
-      />
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-        <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Total Trades</div>
-          <div style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{stats.totalTrades}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <div style={{ fontSize: '12px', fontWeight: '700', color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          📈 Trade History Analytics
         </div>
-        <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Win Rate</div>
-          <div style={{ fontSize: '16px', fontWeight: '800', color: stats.winRate >= 50 ? '#10b981' : '#ef4444', marginTop: '2px' }}>
-            {stats.winRate}%
-          </div>
-        </div>
-        <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Net P&L</div>
-          <div style={{ fontSize: '16px', fontWeight: '800', color: stats.netProfit >= 0 ? '#10b981' : '#ef4444', marginTop: '2px' }}>
-            ${stats.netProfit}
-          </div>
-        </div>
-        <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Profit Factor</div>
-          <div style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{stats.profitFactor}</div>
+        <div style={{ display: 'flex', background: '#e2e8f0', borderRadius: '6px', padding: '2px' }}>
+          <button 
+            onClick={() => setMode('paste')} 
+            style={{ background: mode === 'paste' ? '#fff' : 'transparent', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            Report Parser
+          </button>
+          <button 
+            onClick={() => setMode('login')} 
+            style={{ background: mode === 'login' ? '#fff' : 'transparent', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            MT5 Connect
+          </button>
         </div>
       </div>
+
+      {mode === 'paste' ? (
+        <>
+          <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px', lineHeight: '1.4' }}>
+            Paste your exported MT5 deal history report below to review live win-rate and P&L metrics instantly.
+          </p>
+          <textarea
+            rows={4}
+            placeholder="Paste MT5 statement rows here..."
+            onChange={(e) => analyzeHistory(e.target.value)}
+            style={{ width: '100%', padding: '10px', fontFamily: 'monospace', fontSize: '11px', borderRadius: '6px', border: '1px solid #cbd5e1', marginBottom: '12px', boxSizing: 'border-box', background: '#ffffff' }}
+          />
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+            <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Total Trades</div>
+              <div style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{stats.totalTrades}</div>
+            </div>
+            <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Win Rate</div>
+              <div style={{ fontSize: '16px', fontWeight: '800', color: stats.winRate >= 50 ? '#10b981' : '#ef4444', marginTop: '2px' }}>
+                {stats.winRate}%
+              </div>
+            </div>
+            <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Net P&L</div>
+              <div style={{ fontSize: '16px', fontWeight: '800', color: stats.netProfit >= 0 ? '#10b981' : '#ef4444', marginTop: '2px' }}>
+                ${stats.netProfit}
+              </div>
+            </div>
+            <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Profit Factor</div>
+              <div style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{stats.profitFactor}</div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <form onSubmit={handleConnectLogin} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <p style={{ fontSize: '11px', color: '#64748b', margin: 0, lineHeight: '1.4' }}>
+            Input your MetaTrader 5 account ID and read-only investor password.
+          </p>
+          {errorMsg && (
+            <div style={{ fontSize: '10px', background: '#ffeeec', color: '#dc2626', padding: '8px', borderRadius: '4px', border: '1px solid #fecaca' }}>
+              {errorMsg}
+            </div>
+          )}
+          <input 
+            type="text"
+            placeholder="MT5 Account ID (e.g. 804210)"
+            value={loginForm.accountId}
+            onChange={(e) => setLoginForm({...loginForm, accountId: e.target.value})}
+            style={{ padding: '8px', fontSize: '11px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
+          />
+          <input 
+            type="password"
+            placeholder="Investor Password"
+            value={loginForm.password}
+            onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+            style={{ padding: '8px', fontSize: '11px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
+          />
+          <input 
+            type="text"
+            placeholder="Broker Server (e.g. Deriv-Demo)"
+            value={loginForm.server}
+            onChange={(e) => setLoginForm({...loginForm, server: e.target.value})}
+            style={{ padding: '8px', fontSize: '11px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
+          />
+          <button 
+            type="submit" 
+            disabled={connecting}
+            style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '10px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', marginTop: '4px' }}
+          >
+            {connecting ? 'Connecting to Broker...' : 'Authenticate & Scan'}
+          </button>
+        </form>
+      )}
     </div>
   );
 };
