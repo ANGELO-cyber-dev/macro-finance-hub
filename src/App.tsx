@@ -1,3 +1,4 @@
+import { getLiveForexRates } from "./services/forexLiveService";
 import React, { useState, useEffect } from 'react';
 import { allMarketsData } from './data/allMarketsDatabase';
 import { fetchFredSeries, fetchFmpQuote } from './services/realApiConnector';
@@ -13,6 +14,13 @@ export default function App() {
     // Fetch fundamental data from FRED
     fetchFredSeries('CPIAUCSL').then(setFredCpi);
     fetchFredSeries('UNRATE').then(setFredUnrate);
+    getLiveForexRates().then(rates => {
+      if (rates) {
+        Object.entries(rates).forEach(([sym, price]) => {
+          setFmpPrices(prev => ({ ...prev, [sym]: { price: String(price), change: "+0.10%" } }));
+        });
+      }
+    });
 
     // Fetch live stock quotes from FMP for NYSE stocks
     const nyseSymbols = allMarketsData.filter(i => i.category === 'NYSE').map(i => i.symbol);
