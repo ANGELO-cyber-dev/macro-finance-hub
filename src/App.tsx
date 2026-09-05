@@ -1,9 +1,27 @@
-import React, { useState } from 'react';
-import { centralBanks } from './data/centralBanksData';
+import React, { useState, useEffect } from 'react';
+import { centralBanks, CentralBankInfo } from './data/centralBanksData';
+import { fetchLivePolicyStream } from './services/centralBankEngine';
 
 export default function App() {
-  const [selectedBank, setSelectedBank] = useState(centralBanks[0]);
+  const [selectedBank, setSelectedBank] = useState<CentralBankInfo>(centralBanks[0]);
   const [activeTab, setActiveTab] = useState<'tracker' | 'divergence' | 'speeches'>('tracker');
+  const [liveStreamData, setLiveStreamData] = useState<Record<string, { liveRate: string; score: number; time: string }>>({});
+  const [tick, setTick] = useState<number>(0);
+
+  // Live simulation loop bypassing external API keys
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(t => (t + 1) % 100);
+      const updated: Record<string, { liveRate: string; score: number; time: string }> = {};
+      centralBanks.forEach(cb => {
+        const data = fetchLivePolicyStream(cb.code);
+        updated[cb.code] = { liveRate: data.liveRate, score: data.sentimentScore, time: data.lastUpdated };
+      });
+      setLiveStreamData(updated);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif', padding: '20px' }}>
@@ -13,11 +31,11 @@ export default function App() {
           <div style={{ width: '32px', height: '32px', background: '#0f172a', color: '#fff', display: 'grid', placeItems: 'center', borderRadius: '8px', fontWeight: 900, fontSize: '13px' }}>CB</div>
           <div>
             <h1 style={{ fontSize: '15px', fontWeight: 900, margin: 0 }}>GLOBAL CENTRAL BANK POLICY TERMINAL</h1>
-            <div style={{ fontSize: '10px', color: '#10b981', fontWeight: 800, marginTop: '2px' }}>● REAL-TIME FUTURES PROBABILITY ENGINE</div>
+            <div style={{ fontSize: '10px', color: '#10b981', fontWeight: 800, marginTop: '2px' }}>● BYPASSED SIMULATED FEED LIVE [seq:{tick}]</div>
           </div>
         </div>
         <div style={{ padding: '6px 12px', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>
-          Global Policy Divergence: Moderate
+          Global Policy Divergence: Active
         </div>
       </header>
 
@@ -48,41 +66,44 @@ export default function App() {
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
           {/* Central Banks List */}
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 900, margin: '0 0 15px 0' }}>Major Central Bank Meeting Odds</h3>
+            <h3 style={{ fontSize: '14px', fontWeight: 900, margin: '0 0 15px 0' }}>Major Central Bank Meeting Odds & Live Rates</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {centralBanks.map(cb => (
-                <div
-                  key={cb.code}
-                  onClick={() => setSelectedBank(cb)}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '14px 16px',
-                    background: selectedBank.code === cb.code ? '#f1f5f9' : '#f8fafc',
-                    border: selectedBank.code === cb.code ? '2px solid #0f172a' : '1px solid #e2e8f0',
-                    borderRadius: '10px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: '13px', fontWeight: 900 }}>{cb.bankName} <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>({cb.region})</span></div>
-                    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '3px' }}>Next Meeting: <strong>{cb.nextMeeting}</strong></div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '25px', alignItems: 'center' }}>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 700 }}>CURRENT RATE</div>
-                      <div style={{ fontSize: '13px', fontWeight: 900 }}>{cb.currentRate}</div>
+              {centralBanks.map(cb => {
+                const live = liveStreamData[cb.code];
+                return (
+                  <div
+                    key={cb.code}
+                    onClick={() => setSelectedBank(cb)}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '14px 16px',
+                      background: selectedBank.code === cb.code ? '#f1f5f9' : '#f8fafc',
+                      border: selectedBank.code === cb.code ? '2px solid #0f172a' : '1px solid #e2e8f0',
+                      borderRadius: '10px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 900 }}>{cb.bankName} <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>({cb.region})</span></div>
+                      <div style={{ fontSize: '10px', color: '#64748b', marginTop: '3px' }}>Next Meeting: <strong>{cb.nextMeeting}</strong></div>
                     </div>
-                    <div style={{ textAlign: 'right', minWidth: '70px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 900, color: cb.stance === 'Hawkish' ? '#10b981' : cb.stance === 'Dovish' ? '#ef4444' : '#d97706' }}>
-                        {cb.stance}
+                    <div style={{ display: 'flex', gap: '25px', alignItems: 'center' }}>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 700 }}>LIVE RATE FEED</div>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#10b981' }}>{live ? live.liveRate : cb.currentRate}</div>
                       </div>
-                      <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 800 }}>STANCE</div>
+                      <div style={{ textAlign: 'right', minWidth: '70px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 900, color: cb.stance === 'Hawkish' ? '#10b981' : cb.stance === 'Dovish' ? '#ef4444' : '#d97706' }}>
+                          {cb.stance}
+                        </div>
+                        <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 800 }}>STANCE</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -92,7 +113,7 @@ export default function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px', marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
                 <span style={{ color: '#64748b' }}>Current Policy Rate</span>
-                <strong>{selectedBank.currentRate}</strong>
+                <strong>{liveStreamData[selectedBank.code]?.liveRate || selectedBank.currentRate}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
                 <span style={{ color: '#64748b' }}>Next Meeting</span>
