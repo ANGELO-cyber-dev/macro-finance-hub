@@ -4,6 +4,7 @@ type Scenario = 'hot' | 'inline' | 'soft';
 
 interface ScenarioInfo {
   label: string;
+  shortLabel: string;
   bias: string;
   assetImpact: string;
   fedOdds: string;
@@ -18,32 +19,35 @@ export const CpiIntelligenceHub: React.FC = () => {
   const scenarioData: Record<Scenario, ScenarioInfo> = {
     hot: {
       label: 'Hot CPI',
+      shortLabel: 'HOT',
       bias: 'Bearish · Risk-Off',
       assetImpact: 'USD ↑  ·  Gold ↓  ·  Equities ↓',
       fedOdds: 'Hike probability rises',
       probability: 24,
       description:
-        'Inflation comes in above expectations, increasing pressure on the Fed to maintain or tighten policy.',
+        'Inflation exceeds expectations, increasing pressure on the Federal Reserve to maintain restrictive policy.',
       tone: 'negative',
     },
     inline: {
       label: 'Inline CPI',
+      shortLabel: 'INLINE',
       bias: 'Neutral · Consolidation',
       assetImpact: 'Range-bound action',
       fedOdds: 'Pause priced in',
       probability: 51,
       description:
-        'Data lands close to consensus, leaving markets focused on positioning and forward Fed guidance.',
+        'Data lands close to consensus, leaving markets focused on positioning, yields and forward Fed guidance.',
       tone: 'neutral',
     },
     soft: {
       label: 'Soft CPI',
+      shortLabel: 'SOFT',
       bias: 'Bullish · Risk-On',
       assetImpact: 'USD ↓  ·  Gold ↑  ·  Equities ↑',
       fedOdds: 'Rate cuts accelerated',
       probability: 25,
       description:
-        'Cooling inflation supports a more accommodative policy outlook and improves risk appetite.',
+        'Cooling inflation supports a more accommodative policy outlook and improves broader risk appetite.',
       tone: 'positive',
     },
   };
@@ -51,25 +55,64 @@ export const CpiIntelligenceHub: React.FC = () => {
   const active = scenarioData[scenario];
 
   const toneColor = useMemo(() => {
-    switch (active.tone) {
-      case 'negative':
-        return '#ff5c70';
-      case 'positive':
-        return '#27d7a0';
-      default:
-        return '#eab657';
-    }
+    if (active.tone === 'negative') return '#dc3545';
+    if (active.tone === 'positive') return '#159570';
+    return '#b7791f';
   }, [active.tone]);
+
+  const signalColor = (signal: string) => {
+    if (signal === 'BULLISH' || signal === 'RISK-ON') return '#159570';
+    if (signal === 'BEARISH' || signal === 'RISK-OFF') return '#dc3545';
+    return '#b7791f';
+  };
+
+  const signals = [
+    [
+      'USD',
+      scenario === 'hot'
+        ? 'BULLISH'
+        : scenario === 'soft'
+          ? 'BEARISH'
+          : 'NEUTRAL',
+    ],
+    [
+      'GOLD',
+      scenario === 'hot'
+        ? 'BEARISH'
+        : scenario === 'soft'
+          ? 'BULLISH'
+          : 'NEUTRAL',
+    ],
+    [
+      'EQUITIES',
+      scenario === 'hot'
+        ? 'RISK-OFF'
+        : scenario === 'soft'
+          ? 'RISK-ON'
+          : 'RANGE',
+    ],
+    [
+      'FED',
+      scenario === 'hot'
+        ? 'HAWKISH'
+        : scenario === 'soft'
+          ? 'DOVISH'
+          : 'PAUSE',
+    ],
+  ];
 
   const styles = {
     shell: {
+      width: '100%',
+      boxSizing: 'border-box',
       background: '#ffffff',
-      border: '1px solid #e2e8f0',
-      borderRadius: '12px',
+      border: '1px solid #dfe5ec',
+      borderRadius: '14px',
       padding: '20px',
       marginBottom: '20px',
-      color: '#0f172a',
-      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+      color: '#172033',
+      boxShadow:
+        '0 8px 24px rgba(15, 23, 42, 0.055), 0 1px 2px rgba(15, 23, 42, 0.04)',
       fontFamily:
         'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     } as React.CSSProperties,
@@ -78,92 +121,120 @@ export const CpiIntelligenceHub: React.FC = () => {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      gap: '12px',
-      marginBottom: '17px',
+      gap: '16px',
+      marginBottom: '18px',
       flexWrap: 'wrap',
     } as React.CSSProperties,
 
     titleRow: {
       display: 'flex',
       alignItems: 'center',
-      gap: '10px',
+      gap: '11px',
+      minWidth: 0,
     } as React.CSSProperties,
 
     icon: {
-      width: '34px',
-      height: '34px',
+      width: '36px',
+      height: '36px',
+      flex: '0 0 36px',
       display: 'grid',
       placeItems: 'center',
-      borderRadius: '8px',
-      background: '#f1f5f9',
-      border: '1px solid #cbd5e1',
-      fontSize: '16px',
+      borderRadius: '9px',
+      background: '#f7f9fc',
+      border: '1px solid #dbe2ea',
+      color: '#253047',
+      fontSize: '15px',
+      boxShadow: '0 1px 2px rgba(15,23,42,.03)',
     } as React.CSSProperties,
 
     title: {
       margin: 0,
       fontSize: '15px',
+      lineHeight: 1.25,
       fontWeight: 800,
-      letterSpacing: '-0.01em',
-      color: '#0f172a',
+      letterSpacing: '-0.02em',
+      color: '#172033',
     } as React.CSSProperties,
 
     subtitle: {
-      marginTop: '3px',
-      color: '#64748b',
-      fontSize: '11px',
+      marginTop: '4px',
+      color: '#7a8699',
+      fontSize: '10.5px',
+      lineHeight: 1.35,
+      fontWeight: 500,
     } as React.CSSProperties,
 
     live: {
       display: 'inline-flex',
       alignItems: 'center',
-      gap: '6px',
-      padding: '5px 9px',
+      gap: '7px',
+      padding: '6px 10px',
       borderRadius: '999px',
-      background: '#f0fdf4',
-      border: '1px solid #bbf7d0',
-      color: '#166534',
-      fontSize: '10px',
-      fontWeight: 700,
-      letterSpacing: '.04em',
+      background: '#f5faf8',
+      border: '1px solid #cfe8df',
+      color: '#28765f',
+      fontSize: '9px',
+      fontWeight: 800,
+      letterSpacing: '.075em',
+      whiteSpace: 'nowrap',
     } as React.CSSProperties,
 
     dot: {
       width: '6px',
       height: '6px',
       borderRadius: '50%',
-      background: '#10b981',
-      boxShadow: '0 0 6px rgba(16,185,129,.5)',
+      background: '#159570',
+      boxShadow: '0 0 0 3px rgba(21,149,112,.09)',
     } as React.CSSProperties,
 
     grid: {
       display: 'grid',
-      gridTemplateColumns: 'minmax(0, 1.35fr) minmax(320px, .9fr)',
-      gap: '15px',
+      gridTemplateColumns: 'minmax(0, 1.35fr) minmax(300px, .9fr)',
+      gap: '14px',
     } as React.CSSProperties,
 
     panel: {
       background: '#f8fafc',
-      border: '1px solid #e2e8f0',
-      borderRadius: '10px',
+      border: '1px solid #e1e7ee',
+      borderRadius: '11px',
       overflow: 'hidden',
     } as React.CSSProperties,
 
     panelHeader: {
-      padding: '12px 14px',
-      borderBottom: '1px solid #e2e8f0',
+      padding: '13px 14px',
+      borderBottom: '1px solid #e3e8ef',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
+      gap: '10px',
       background: '#ffffff',
     } as React.CSSProperties,
 
     panelLabel: {
-      fontSize: '11px',
-      color: '#334155',
+      fontSize: '9.5px',
+      color: '#526078',
       textTransform: 'uppercase',
-      letterSpacing: '.05em',
-      fontWeight: 700,
+      letterSpacing: '.075em',
+      fontWeight: 800,
+    } as React.CSSProperties,
+
+    panelSub: {
+      marginTop: '3px',
+      color: '#8a95a6',
+      fontSize: '10px',
+      lineHeight: 1.35,
+    } as React.CSSProperties,
+
+    ticker: {
+      fontSize: '9px',
+      color: '#526078',
+      background: '#f7f9fc',
+      border: '1px solid #dce3eb',
+      padding: '4px 7px',
+      borderRadius: '5px',
+      fontWeight: 800,
+      letterSpacing: '.04em',
+      whiteSpace: 'nowrap',
     } as React.CSSProperties,
   };
 
@@ -172,15 +243,16 @@ export const CpiIntelligenceHub: React.FC = () => {
       {/* HEADER */}
       <div style={styles.header}>
         <div style={styles.titleRow}>
-          <div style={styles.icon}>📊</div>
+          <div style={styles.icon}>▥</div>
 
           <div>
             <h3 style={styles.title}>
-              CPI Intelligence & Scenario Briefing
+              CPI Intelligence &amp; Scenario Briefing
             </h3>
 
             <div style={styles.subtitle}>
-              Real-time inflation regime analysis · USD macro impact
+              Inflation regime analysis · USD macro transmission · Fed policy
+              sensitivity
             </div>
           </div>
         </div>
@@ -193,36 +265,18 @@ export const CpiIntelligenceHub: React.FC = () => {
 
       {/* MAIN GRID */}
       <div style={styles.grid}>
-        {/* DXY MARKET PANEL */}
+        {/* MARKET PANEL */}
         <div style={styles.panel}>
           <div style={styles.panelHeader}>
             <div>
               <div style={styles.panelLabel}>US Dollar Index</div>
 
-              <div
-                style={{
-                  marginTop: '2px',
-                  fontSize: '11px',
-                  color: '#64748b',
-                }}
-              >
+              <div style={styles.panelSub}>
                 DXY · Macro transmission signal
               </div>
             </div>
 
-            <div
-              style={{
-                fontSize: '10px',
-                color: '#166534',
-                background: '#f0fdf4',
-                border: '1px solid #bbf7d0',
-                padding: '4px 8px',
-                borderRadius: '6px',
-                fontWeight: 'bold',
-              }}
-            >
-              FX:DXY
-            </div>
+            <div style={styles.ticker}>FX:DXY</div>
           </div>
 
           <div
@@ -243,33 +297,34 @@ export const CpiIntelligenceHub: React.FC = () => {
             />
           </div>
 
-          {/* QUICK MARKET METRICS */}
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',
-              borderTop: '1px solid #e2e8f0',
+              borderTop: '1px solid #e3e8ef',
               background: '#ffffff',
             }}
           >
             {[
-              ['DXY', 'Live', '#10b981'],
-              ['CPI', 'Pending', '#d97706'],
-              ['FED', 'Priced', '#2563eb'],
-            ].map(([label, value, color]) => (
+              ['DXY', 'Live', '#159570'],
+              ['CPI', 'Pending', '#b7791f'],
+              ['FED', 'Priced', '#3b67b1'],
+            ].map(([label, value, color], index) => (
               <div
                 key={label}
                 style={{
                   padding: '10px 12px',
-                  borderRight: '1px solid #e2e8f0',
+                  borderRight:
+                    index < 2 ? '1px solid #e3e8ef' : 'none',
                 }}
               >
                 <div
                   style={{
-                    color: '#64748b',
-                    fontSize: '10px',
+                    color: '#8792a3',
+                    fontSize: '8.5px',
                     textTransform: 'uppercase',
-                    fontWeight: 600,
+                    letterSpacing: '.06em',
+                    fontWeight: 800,
                   }}
                 >
                   {label}
@@ -278,9 +333,9 @@ export const CpiIntelligenceHub: React.FC = () => {
                 <div
                   style={{
                     color,
-                    fontSize: '12px',
+                    fontSize: '11px',
                     fontWeight: 800,
-                    marginTop: '2px',
+                    marginTop: '3px',
                   }}
                 >
                   {value}
@@ -298,38 +353,33 @@ export const CpiIntelligenceHub: React.FC = () => {
                 Pre-Report Scenario Engine
               </div>
 
-              <div
-                style={{
-                  color: '#64748b',
-                  fontSize: '11px',
-                  marginTop: '2px',
-                }}
-              >
+              <div style={styles.panelSub}>
                 Select expected CPI regime
               </div>
             </div>
 
             <span
               style={{
-                color: '#64748b',
-                fontSize: '10px',
-                fontWeight: 600,
+                color: '#8a95a6',
+                fontSize: '9px',
+                fontWeight: 800,
+                letterSpacing: '.05em',
               }}
             >
               MODEL v2.4
             </span>
           </div>
 
-          <div style={{ padding: '15px' }}>
+          <div style={{ padding: '14px' }}>
             {/* SEGMENTED CONTROL */}
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '6px',
+                gap: '4px',
                 padding: '4px',
-                background: '#ffffff',
-                border: '1px solid #cbd5e1',
+                background: '#f1f4f8',
+                border: '1px solid #dce3eb',
                 borderRadius: '8px',
               }}
             >
@@ -342,20 +392,21 @@ export const CpiIntelligenceHub: React.FC = () => {
                     onClick={() => setScenario(s)}
                     style={{
                       border: selected
-                        ? '1px solid #0f172a'
+                        ? '1px solid #202a3b'
                         : '1px solid transparent',
-                      background: selected ? '#0f172a' : 'transparent',
-                      color: selected ? '#ffffff' : '#475569',
-                      padding: '8px 5px',
+                      background: selected ? '#202a3b' : 'transparent',
+                      color: selected ? '#ffffff' : '#69758a',
+                      padding: '8px 4px',
                       borderRadius: '6px',
                       cursor: 'pointer',
-                      fontSize: '11px',
+                      fontSize: '9.5px',
                       fontWeight: 800,
-                      textTransform: 'uppercase',
-                      transition: 'all .18s ease',
+                      letterSpacing: '.055em',
+                      transition:
+                        'background .16s ease, color .16s ease, border .16s ease',
                     }}
                   >
-                    {s}
+                    {scenarioData[s].shortLabel}
                   </button>
                 );
               })}
@@ -364,11 +415,12 @@ export const CpiIntelligenceHub: React.FC = () => {
             {/* ACTIVE SCENARIO */}
             <div
               style={{
-                marginTop: '14px',
-                padding: '12px',
+                marginTop: '12px',
+                padding: '13px',
                 background: '#ffffff',
-                border: '1px solid #cbd5e1',
+                border: '1px solid #dce3eb',
                 borderRadius: '8px',
+                boxShadow: '0 2px 5px rgba(15,23,42,.025)',
               }}
             >
               <div
@@ -376,12 +428,13 @@ export const CpiIntelligenceHub: React.FC = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  gap: '10px',
                 }}
               >
                 <div
                   style={{
                     color: toneColor,
-                    fontSize: '13px',
+                    fontSize: '12px',
                     fontWeight: 800,
                   }}
                 >
@@ -390,20 +443,19 @@ export const CpiIntelligenceHub: React.FC = () => {
 
                 <div
                   style={{
-                    color: '#64748b',
-                    fontSize: '11px',
-                    fontWeight: 600,
+                    color: '#7a8699',
+                    fontSize: '9.5px',
+                    fontWeight: 700,
                   }}
                 >
                   {active.probability}% probability
                 </div>
               </div>
 
-              {/* PROBABILITY BAR */}
               <div
                 style={{
-                  height: '6px',
-                  background: '#f1f5f9',
+                  height: '5px',
+                  background: '#edf1f5',
                   borderRadius: '99px',
                   overflow: 'hidden',
                   marginTop: '9px',
@@ -424,11 +476,11 @@ export const CpiIntelligenceHub: React.FC = () => {
             {/* SIGNAL ROWS */}
             <div
               style={{
-                marginTop: '12px',
+                marginTop: '11px',
                 display: 'grid',
                 gap: '1px',
-                background: '#cbd5e1',
-                border: '1px solid #cbd5e1',
+                background: '#dce3eb',
+                border: '1px solid #dce3eb',
                 borderRadius: '8px',
                 overflow: 'hidden',
               }}
@@ -442,17 +494,18 @@ export const CpiIntelligenceHub: React.FC = () => {
                   key={label}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '105px 1fr',
+                    gridTemplateColumns: '92px 1fr',
                     gap: '8px',
-                    padding: '10px 12px',
+                    padding: '9px 11px',
                     background: '#ffffff',
                   }}
                 >
                   <span
                     style={{
-                      color: '#64748b',
-                      fontSize: '10px',
-                      fontWeight: 700,
+                      color: '#8994a5',
+                      fontSize: '8.5px',
+                      fontWeight: 800,
+                      letterSpacing: '.035em',
                     }}
                   >
                     {label}
@@ -460,8 +513,8 @@ export const CpiIntelligenceHub: React.FC = () => {
 
                   <strong
                     style={{
-                      color: '#0f172a',
-                      fontSize: '11px',
+                      color: '#263146',
+                      fontSize: '10px',
                       fontWeight: 750,
                     }}
                   >
@@ -474,13 +527,13 @@ export const CpiIntelligenceHub: React.FC = () => {
             {/* MODEL EXPLANATION */}
             <div
               style={{
-                marginTop: '12px',
-                color: '#475569',
-                fontSize: '11px',
-                lineHeight: 1.5,
+                marginTop: '11px',
+                color: '#69758a',
+                fontSize: '10px',
+                lineHeight: 1.55,
               }}
             >
-              <span style={{ color: '#0f172a', fontWeight: 700 }}>
+              <span style={{ color: '#263146', fontWeight: 800 }}>
                 Model view:
               </span>{' '}
               {active.description}
@@ -494,33 +547,31 @@ export const CpiIntelligenceHub: React.FC = () => {
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '8px',
-          marginTop: '15px',
+          gap: '7px',
+          marginTop: '14px',
         }}
       >
-        {[
-          ['USD', scenario === 'hot' ? 'BULLISH' : scenario === 'soft' ? 'BEARISH' : 'NEUTRAL'],
-          ['GOLD', scenario === 'hot' ? 'BEARISH' : scenario === 'soft' ? 'BULLISH' : 'NEUTRAL'],
-          ['EQUITIES', scenario === 'hot' ? 'RISK-OFF' : scenario === 'soft' ? 'RISK-ON' : 'RANGE'],
-          ['FED', scenario === 'hot' ? 'HAWKISH' : scenario === 'soft' ? 'DOVISH' : 'PAUSE'],
-        ].map(([asset, signal]) => (
+        {signals.map(([asset, signal]) => (
           <div
             key={asset}
             style={{
               background: '#ffffff',
-              border: '1px solid #e2e8f0',
+              border: '1px solid #dfe5ec',
               borderRadius: '8px',
-              padding: '10px 12px',
+              padding: '10px 11px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 1px 2px rgba(15,23,42,.025)',
             }}
           >
             <span
               style={{
-                color: '#64748b',
-                fontSize: '10px',
-                fontWeight: 750,
+                color: '#7a8699',
+                fontSize: '8.5px',
+                fontWeight: 800,
+                letterSpacing: '.045em',
               }}
             >
               {asset}
@@ -528,14 +579,10 @@ export const CpiIntelligenceHub: React.FC = () => {
 
             <span
               style={{
-                color:
-                  signal === 'BULLISH' || signal === 'RISK-ON'
-                    ? '#10b981'
-                    : signal === 'BEARISH' || signal === 'RISK-OFF'
-                      ? '#ef4444'
-                      : '#d97706',
-                fontSize: '10px',
-                fontWeight: 800,
+                color: signalColor(signal),
+                fontSize: '8.5px',
+                fontWeight: 850,
+                letterSpacing: '.035em',
               }}
             >
               {signal}
@@ -543,6 +590,32 @@ export const CpiIntelligenceHub: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* RESPONSIVE OVERRIDE */}
+      <style>
+        {`
+          @media (max-width: 900px) {
+            .cpi-intelligence-grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+
+          @media (max-width: 600px) {
+            .cpi-intelligence-shell {
+              padding: 14px !important;
+              border-radius: 11px !important;
+            }
+
+            .cpi-intelligence-grid {
+              grid-template-columns: 1fr !important;
+            }
+
+            .cpi-signal-strip {
+              grid-template-columns: repeat(2, 1fr) !important;
+            }
+          }
+        `}
+      </style>
     </section>
   );
 };
