@@ -17,7 +17,7 @@ export interface ForexPair {
 
 export const forexPairs: ForexPair[] = [
   {
-    symbol: 'XAU/USD',
+    symbol: 'XAU/USD,XAG/USD',
     name: 'Spot Gold / US Dollar',
     category: 'COMMODITIES',
     price: '$4,428.894',
@@ -65,35 +65,19 @@ export const forexPairs: ForexPair[] = [
     rationale: 'OPEC+ production adjustments offset by sluggish global manufacturing demand indicators.'
   },
   {
-    symbol: 'EUR/USD',
-    name: 'Euro / US Dollar',
-    category: 'FOREX',
-    price: '1.0845',
-    change: '+0.15%',
-    atr: '48 pips',
-    rsi: '52.0',
+    symbol: 'BRENT/USD',
+    name: 'Brent Crude Oil Spot',
+    category: 'COMMODITIES',
+    price: '$78.40',
+    change: '-0.30%',
+    atr: '$1.35',
+    rsi: '50.2',
     volatility: 'Moderate',
-    bias: 'Neutral (0)',
-    score: '0',
+    bias: 'Neutral (+54)',
+    score: '+54',
     fredDelta: '4.34%',
-    regimeTone: 'Consolidation',
-    consensus: '50%',
-    rationale: 'ECB and Federal Reserve rate expectations remain closely balanced ahead of upcoming employment data.'
-  },
-  {
-    symbol: 'GBP/USD',
-    name: 'British Pound / US Dollar',
-    category: 'FOREX',
-    price: '1.2680',
-    change: '+0.28%',
-    atr: '62 pips',
-    rsi: '55.3',
-    volatility: 'Moderate',
-    bias: 'Bullish (+14)',
-    score: '+14',
-    fredDelta: '4.34%',
-    regimeTone: 'Resilient Growth',
-    consensus: '58%',
-    rationale: 'Sticky UK wage growth keeps BoE pivot pricing subdued relative to peer central banks.'
+    regimeTone: 'Balanced Supply',
+    consensus: '55%',
+    rationale: 'Global maritime route adjustments balancing prompt physical delivery premiums.'
   }
 ];
