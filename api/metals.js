@@ -1,6 +1,5 @@
 export default async function handler(req, res) {
   try {
-    // Yahoo Finance commodity futures endpoints (GC=F for Gold, SI=F for Silver)
     const [goldRes, silverRes] = await Promise.all([
       fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d'),
       fetch('https://query1.finance.yahoo.com/v8/finance/chart/SI=F?interval=1d&range=1d')
@@ -14,8 +13,8 @@ export default async function handler(req, res) {
 
     res.setHeader('Cache-Control', 's-maxage=10, stale-while-revalidate=30');
     return res.status(200).json({
-      'XAU/USD': goldPrice,
-      'XAG/USD': silverPrice
+      'XAU/USD': { price: Number(goldPrice) },
+      'XAG/USD': { price: Number(silverPrice) }
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });

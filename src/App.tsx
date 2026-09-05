@@ -430,7 +430,7 @@ export default function App() {
     } else {
       try {
         setSyncStatus(`Syncing Twelve Data ${classFilter}...`);
-        const res = await fetch(`/api/twelve?symbols=${encodeURIComponent(symbols)}`);
+        const res = await fetch(`/api/metals`);
         const data = await res.json();
         if (data && typeof data === 'object') {
           const updated: Record<string, number> = {};
