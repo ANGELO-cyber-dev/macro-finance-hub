@@ -1,93 +1,172 @@
 import React, { useState } from 'react';
-import { SideMenuDrawer } from './components/SideMenuDrawer';
-import { CpiIntelligenceHub } from './components/CpiIntelligenceHub';
-import { CompanyResearch } from './components/CompanyResearch';
+import { centralBanks } from './data/centralBanksData';
 
 export default function App() {
-  const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
-  const [currency, setCurrency] = useState('AUD');
-  const [activeTab, setActiveTab] = useState('Overview');
+  const [selectedBank, setSelectedBank] = useState(centralBanks[0]);
+  const [activeTab, setActiveTab] = useState<'tracker' | 'divergence' | 'speeches'>('tracker');
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Header Bar */}
-      <header style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '18px' }}>📊</span>
-          <h1 style={{ fontSize: '15px', fontWeight: '800', margin: 0, letterSpacing: '-0.02em' }}>MACRO SIGNAL DASHBOARD</h1>
+    <div style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif', padding: '20px' }}>
+      {/* Institutional Header */}
+      <header style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '32px', height: '32px', background: '#0f172a', color: '#fff', display: 'grid', placeItems: 'center', borderRadius: '8px', fontWeight: 900, fontSize: '13px' }}>CB</div>
+          <div>
+            <h1 style={{ fontSize: '15px', fontWeight: 900, margin: 0 }}>GLOBAL CENTRAL BANK POLICY TERMINAL</h1>
+            <div style={{ fontSize: '10px', color: '#10b981', fontWeight: 800, marginTop: '2px' }}>● REAL-TIME FUTURES PROBABILITY ENGINE</div>
+          </div>
         </div>
-        <button 
-          onClick={() => setIsSideMenuOpen(true)} 
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', backgroundColor: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
-        >
-          <span>📈</span> Menu / Analytics
-        </button>
+        <div style={{ padding: '6px 12px', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>
+          Global Policy Divergence: Moderate
+        </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1, maxWidth: '1400px', width: '100%', margin: '0 auto' }}>
-        {/* Sidebar Navigation */}
-        <aside style={{ width: '220px', backgroundColor: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '20px 12px', display: 'none', flexDirection: 'column', gap: '8px' }} className="md:flex">
-          <div style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Workspace</div>
-          <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#0f172a', marginBottom: '12px', padding: '6px 8px', backgroundColor: '#f1f5f9', borderRadius: '6px' }}>Global Macro</div>
-          
-          <div style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', margin: '12px 0 6px 0', letterSpacing: '0.05em' }}>Navigation</div>
-          {['Overview', 'Rates & Yields', 'Labor Engine', 'Event Monitor', 'Signal History'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                textAlign: 'left',
-                backgroundColor: activeTab === tab ? '#f1f5f9' : 'transparent',
-                color: activeTab === tab ? '#0f172a' : '#64748b',
-                border: 'none',
-                padding: '8px 10px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: activeTab === tab ? 'bold' : 'normal',
-                cursor: 'pointer'
-              }}
-            >
-              {tab}
-            </button>
-          ))}
-        </aside>
+      {/* Navigation Sub-bar */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        {(['tracker', 'divergence', 'speeches'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              padding: '8px 16px',
+              background: activeTab === tab ? '#0f172a' : '#ffffff',
+              color: activeTab === tab ? '#ffffff' : '#475569',
+              border: '1px solid #cbd5e1',
+              borderRadius: '8px',
+              fontSize: '11px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              textTransform: 'uppercase'
+            }}
+          >
+            {tab === 'tracker' ? 'Rate Expectations & Odds' : tab === 'divergence' ? 'Cross-Border Divergence Matrix' : 'Hawkometer Speech Sentiment'}
+          </button>
+        ))}
+      </div>
 
-        {/* Main Content Area */}
-        <main style={{ flex: 1, padding: '20px', boxSizing: 'border-box', overflowX: 'hidden' }}>
-          {/* Selected Currency Card */}
-          <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
-            <div>
-              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Selected Currency</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
-                <select 
-                  value={currency} 
-                  onChange={(e) => setCurrency(e.target.value)}
-                  style={{ fontSize: '16px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
+      {activeTab === 'tracker' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
+          {/* Central Banks List */}
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 900, margin: '0 0 15px 0' }}>Major Central Bank Meeting Odds</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {centralBanks.map(cb => (
+                <div
+                  key={cb.code}
+                  onClick={() => setSelectedBank(cb)}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '14px 16px',
+                    background: selectedBank.code === cb.code ? '#f1f5f9' : '#f8fafc',
+                    border: selectedBank.code === cb.code ? '2px solid #0f172a' : '1px solid #e2e8f0',
+                    borderRadius: '10px',
+                    cursor: 'pointer'
+                  }}
                 >
-                  <option value="AUD">AUD</option>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                </select>
-                <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 'bold' }}>🟢 Bullish Mode</span>
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: '900', color: '#0f172a', marginTop: '6px' }}>-12</div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>MACRO SCORE / 100 • +16 pts 30D</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a' }}>58%</div>
-              <div style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold' }}>+2% pts</div>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 900 }}>{cb.bankName} <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>({cb.region})</span></div>
+                    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '3px' }}>Next Meeting: <strong>{cb.nextMeeting}</strong></div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '25px', alignItems: 'center' }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 700 }}>CURRENT RATE</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900 }}>{cb.currentRate}</div>
+                    </div>
+                    <div style={{ textAlign: 'right', minWidth: '70px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 900, color: cb.stance === 'Hawkish' ? '#10b981' : cb.stance === 'Dovish' ? '#ef4444' : '#d97706' }}>
+                        {cb.stance}
+                      </div>
+                      <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 800 }}>STANCE</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Core Hubs */}
-          <CpiIntelligenceHub />
-          <CompanyResearch />
-        </main>
-      </div>
+          {/* Selected Bank Details Panel */}
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 900, margin: '0 0 15px 0' }}>{selectedBank.bankName} Details</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Current Policy Rate</span>
+                <strong>{selectedBank.currentRate}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Next Meeting</span>
+                <strong>{selectedBank.nextMeeting}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Hike Probability</span>
+                <strong style={{ color: '#10b981' }}>{selectedBank.rateOddsHike}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Hold Probability</span>
+                <strong>{selectedBank.rateOddsHold}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
+                <span style={{ color: '#64748b' }}>Cut Probability</span>
+                <strong style={{ color: '#ef4444' }}>{selectedBank.rateOddsCut}</strong>
+              </div>
+            </div>
 
-      {/* Side Command Center Drawer */}
-      <SideMenuDrawer isOpen={isSideMenuOpen} onClose={() => setIsSideMenuOpen(false)} />
+            <h4 style={{ fontSize: '12px', fontWeight: 900, margin: '0 0 8px 0' }}>Implied Rate Path</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              {selectedBank.impliedPath.map((rate, idx) => (
+                <div key={idx} style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                  <div style={{ fontSize: '8px', color: '#64748b', fontWeight: 800 }}>Mtg +{idx}</div>
+                  <div style={{ fontSize: '12px', fontWeight: 900, marginTop: '2px' }}>{rate}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'divergence' && (
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 900, margin: '0 0 15px 0' }}>Cross-Border Policy Divergence Matrix</h3>
+          <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '15px' }}>Comparing central bank policy stances to identify high-conviction forex and yield spread opportunities.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 900, color: '#166534', marginBottom: '6px' }}>🟢 Hawkish vs Dovish Spread (ECB / FED)</div>
+              <p style={{ fontSize: '11px', color: '#14532d', margin: 0, lineHeight: 1.4 }}>
+                ECB tightening expectations contrast sharply with the Federal Reserve's pause stance, supporting EUR relative strength against USD crosses.
+              </p>
+            </div>
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 900, color: '#dc2626', marginBottom: '6px' }}>🔴 Normalization Divergence (BOJ / FED)</div>
+              <p style={{ fontSize: '11px', color: '#7f1d1d', margin: 0, lineHeight: 1.4 }}>
+                Bank of Japan gradually normalizing rates while US yields hover near 4.3% creates ongoing carry trade re-evaluations and sudden volatility spikes.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'speeches' && (
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 900, margin: '0 0 15px 0' }}>Hawkometer Speech Sentiment Tracker</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '11px' }}>
+              <div>
+                <strong>Federal Reserve (Powell / Officials)</strong>
+                <div style={{ color: '#64748b', fontSize: '10px', marginTop: '2px' }}>Recent transcripts lean cautious/accommodative</div>
+              </div>
+              <strong style={{ color: '#d97706' }}>Neutral (+3.8)</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '11px' }}>
+              <div>
+                <strong>European Central Bank (Lagarde)</strong>
+                <div style={{ color: '#64748b', fontSize: '10px', marginTop: '2px' }}>Focus on sticky inflation and second-round wage effects</div>
+              </div>
+              <strong style={{ color: '#10b981' }}>Hawkish (+6.2)</strong>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
