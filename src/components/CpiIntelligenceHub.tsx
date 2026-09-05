@@ -19,9 +19,9 @@ export const CpiIntelligenceHub: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px' }}>
         <div style={{ height: '220px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
           <iframe 
-            src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?symbol=ECONOMICS:USCPIY&locale=en&colorTheme=light" 
+            src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?symbol=FX:DXY&locale=en&colorTheme=light" 
             style={{ width: '100%', height: '100%', border: 'none' }}
-            title="US CPI Trend"
+            title="US Dollar Index Macro Trend"
           />
         </div>
 
