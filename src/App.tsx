@@ -413,17 +413,29 @@ export default function App() {
     if (isFmpClass) {
       try {
         setSyncStatus(`Syncing FMP ${classFilter}...`);
-        const res = await fetch(`/api/fmp?symbols=${encodeURIComponent(symbols)}`);
-        const data = await res.json();
-        if (data && typeof data === 'object') {
-          const updated: Record<string, number> = {};
-          Object.entries(data).forEach(([sym, obj]: [string, any]) => {
-            if (obj?.price) updated[sym] = Number(obj.price);
-          });
-          setLivePricesMap(prev => ({ ...prev, ...updated }));
-          setSyncStatus(`FMP ${classFilter} Connected`);
-          if (updated[selectedAsset.symbol]) setActivePrice(updated[selectedAsset.symbol]);
+        const ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=1089");
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ ticks: "frxXAUUSD" }));
+        ws.send(JSON.stringify({ ticks: "frxXAGUSD" }));
+        ws.send(JSON.stringify({ ticks: "frxEURUSD" }));
+        ws.send(JSON.stringify({ ticks: "frxGBPUSD" }));
+      };
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.tick) {
+          const map = {
+            frxXAUUSD: "XAU/USD",
+            frxXAGUSD: "XAG/USD",
+            frxEURUSD: "EUR/USD",
+            frxGBPUSD: "GBP/USD"
+          };
+          const sym = map[msg.tick.symbol];
+          if (sym) {
+            setLivePricesMap(prev => ({ ...prev, [sym]: msg.tick.quote }));
+            setSyncStatus("Live Broker Stream");
+          }
         }
+      };
       } catch (e) {
         console.error('FMP Sync Failed', e);
       }
