@@ -67,7 +67,6 @@ export const CpiIntelligenceHub: React.FC = () => {
         </div>
       </div>
 
-      {/* SCENARIO ENGINE ONLY (CHART REMOVED) */}
       <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: '#334155' }}>Pre-Report Scenario Engine</div>
